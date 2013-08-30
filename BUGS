@@ -2,3 +2,5 @@
   to a segfault
 
 https://bugzilla.icculus.org/ for more.
+
+- On ODROID gamma won't work resulting in very dark environment

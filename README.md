@@ -1,3 +1,9 @@
+ODROID Adaption
+===============
+
+Added some adaptations for ODROID. And some optimization flags.
+
+
 OpenArenaPandora
 ================
 

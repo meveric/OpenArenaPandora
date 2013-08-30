@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=OpenArena
+Exec=/opt/OpenArena/openarena.arm
+Icon=/opt/OpenArena/quake3.png
+Type=Application
+Terminal=false
+Encoding=UTF-8
+Categories=Game;ActionGame;
+X-SuSE-translate=false

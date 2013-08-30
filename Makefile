@@ -8,7 +8,8 @@ COMPILE_PLATFORM=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]'|sed -e 
 
 COMPILE_ARCH=$(shell uname -m | sed -e s/i.86/i386/)
 
-COMPILE_PLATFORM=pandora
+#COMPILE_PLATFORM=pandora
+COMPILE_PLATFORM=odroid
 COMPILE_ARCH=arm
 
 ifeq ($(COMPILE_PLATFORM),sunos)
@@ -459,6 +460,89 @@ ifeq ($(PLATFORM),pandora)
   BASE_CFLAGS += -DPANDORA -DARM -DNEON -DHAVE_GLES
 
 else # ifeq pandora
+
+#############################################################################
+# SETUP AND BUILD -- ODROID
+#############################################################################
+
+ifeq ($(PLATFORM),odroid)
+
+  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
+    -pipe -DUSE_ICON -mcpu=cortex-a9 -mfpu=neon -mfloat-abi=hard -fsigned-char \
+    -ftree-vectorize -fsingle-precision-constant \
+    -D__ARM_NEON__ -march=armv7-a -mtune=cortex-a9
+  CLIENT_CFLAGS = $(SDL_CFLAGS)
+  SERVER_CFLAGS =
+  USE_LOCAL_HEADERS =
+
+  ifeq ($(USE_OPENAL),1)
+    CLIENT_CFLAGS += -DUSE_OPENAL
+    ifeq ($(USE_OPENAL_DLOPEN),1)
+      CLIENT_CFLAGS += -DUSE_OPENAL_DLOPEN
+    endif
+  endif
+
+  ifeq ($(USE_CURL),1)
+    CLIENT_CFLAGS += -DUSE_CURL
+    ifeq ($(USE_CURL_DLOPEN),1)
+      CLIENT_CFLAGS += -DUSE_CURL_DLOPEN
+    endif
+  endif
+
+  ifeq ($(USE_CODEC_VORBIS),1)
+    CLIENT_CFLAGS += -DUSE_CODEC_VORBIS
+  endif
+
+  OPTIMIZEVM = -funroll-loops -fomit-frame-pointer -fdefer-pop -fmerge-constants -floop-optimize -fif-conversion -fif-conversion2 -fguess-branch-probability -fcprop-registers -fomit-frame-pointer -foptimize-sibling-calls -fstrength-reduce -fcse-follow-jumps  -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fgcse-lm -fgcse-sm -fgcse-las -fdelete-null-pointer-checks -fexpensive-optimizations -fregmove -fschedule-insns -fschedule-insns2 -fsched-interblock -fsched-spec -fcaller-saves -fpeephole2 -freorder-blocks -freorder-functions -fstrict-aliasing -funit-at-a-time -falign-functions -falign-jumps -falign-loops -falign-labels -fcrossjumping -finline-functions -fweb -frename-registers -fomit-frame-pointer
+  OPTIMIZE = $(OPTIMIZEVM) -ffast-math
+  HAVE_VM_COMPILED=
+
+  ifneq ($(HAVE_VM_COMPILED),true)
+    BASE_CFLAGS += -DNO_VM_COMPILED
+  endif
+
+  SHLIBEXT=so
+  SHLIBCFLAGS=-fPIC -fvisibility=hidden
+  SHLIBLDFLAGS=-shared $(LDFLAGS)
+
+  THREAD_LIBS=-lpthread
+  LIBS=-ldl -lm
+
+  CLIENT_LIBS=$(SDL_LIBS) -lGLESv1_CM -lEGL
+
+  ifeq ($(USE_OPENAL),1)
+    ifneq ($(USE_OPENAL_DLOPEN),1)
+      CLIENT_LIBS += -lopenal
+    endif
+  endif
+
+  ifeq ($(USE_CURL),1)
+    ifneq ($(USE_CURL_DLOPEN),1)
+      CLIENT_LIBS += -lcurl
+    endif
+  endif
+
+  ifeq ($(USE_CODEC_VORBIS),1)
+#Sago: Here I get vorbis to compile in Windows:
+    ifeq ($(PLATFORM),mingw32)
+      CLIENT_LIBS += $(LIBSDIR)/win32/libvorbisfile.a $(LIBSDIR)/win32/libvorbis.a $(LIBSDIR)/win32/libogg.a
+    else
+      CLIENT_LIBS += -lvorbisfile -lvorbis -logg
+    endif
+  endif
+
+  ifeq ($(USE_MUMBLE),1)
+    CLIENT_LIBS += -lrt
+  endif
+
+  ifeq ($(USE_LOCAL_HEADERS),1)
+    CLIENT_CFLAGS += -I$(SDLHDIR)/include
+  endif
+
+  BASE_CFLAGS += -DODROID -DARM -DNEON -DHAVE_GLES
+
+else # ifeq odroid
+
 #############################################################################
 # SETUP AND BUILD -- MAC OS X
 #############################################################################
@@ -916,6 +1000,7 @@ else # ifeq sunos
 
 endif #Linux
 endif #pandora
+endif #odroid
 endif #darwin
 endif #mingw32
 endif #FreeBSD
@@ -2408,3 +2493,10 @@ endif
 	release targets \
 	toolsclean toolsclean2 toolsclean-debug toolsclean-release \
 	$(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
+ifeq ($(PLATFORM),odroid)
+install:
+	mkdir /opt/OpenArena/
+	cp misc/OpenArena.desktop /usr/share/applications/
+	cp build/release-odroid-arm/*.arm /opt/OpenArena/
+	cp misc/quake3.png /opt/OpenArena
+endif
