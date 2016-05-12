@@ -366,10 +366,6 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 	glConfig.vidWidth=800;
 	glConfig.vidHeight=480;
 	glConfig.windowAspect=800.0/480.0;
-	#elif ODROID
-	glConfig.vidWidth=1280;
-        glConfig.vidHeight=720;
-        glConfig.windowAspect=1280.0/720.0;
 	#else
 	if ( !R_GetModeInfo( &glConfig.vidWidth, &glConfig.vidHeight, &glConfig.windowAspect, mode ) )
 	{
