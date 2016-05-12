@@ -493,7 +493,7 @@ ifeq ($(PLATFORM),odroid)
     CLIENT_CFLAGS += -DUSE_CODEC_VORBIS
   endif
 
-  OPTIMIZEVM = -funroll-loops -fomit-frame-pointer -fdefer-pop -fmerge-constants -floop-optimize -fif-conversion -fif-conversion2 -fguess-branch-probability -fcprop-registers -fomit-frame-pointer -foptimize-sibling-calls -fstrength-reduce -fcse-follow-jumps  -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt -fgcse -fgcse-lm -fgcse-sm -fgcse-las -fdelete-null-pointer-checks -fexpensive-optimizations -fregmove -fschedule-insns -fschedule-insns2 -fsched-interblock -fsched-spec -fcaller-saves -fpeephole2 -freorder-blocks -freorder-functions -fstrict-aliasing -funit-at-a-time -falign-functions -falign-jumps -falign-loops -falign-labels -fcrossjumping -finline-functions -fweb -frename-registers -fomit-frame-pointer
+  OPTIMIZEVM = -Ofast
   OPTIMIZE = $(OPTIMIZEVM) -ffast-math
   HAVE_VM_COMPILED=
 
@@ -2494,9 +2494,15 @@ endif
 	toolsclean toolsclean2 toolsclean-debug toolsclean-release \
 	$(OBJ_D_FILES) $(TOOLSOBJ_D_FILES)
 ifeq ($(PLATFORM),odroid)
-install:
-	mkdir /opt/OpenArena/
+install: install-bin install-data
+install-bin:
+	mkdir -p /opt/OpenArena/
 	cp misc/OpenArena.desktop /usr/share/applications/
 	cp build/release-odroid-arm/*.arm /opt/OpenArena/
 	cp misc/quake3.png /opt/OpenArena
+install-data:
+	cp -av baseoa /opt/OpenArena/
+	cp -av missionpack /opt/OpenArena/
+	chmod 777 /opt/OpenArena/baseoa
+	chmod 777 /opt/OpenArena/missionpack
 endif
